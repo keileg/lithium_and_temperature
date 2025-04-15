@@ -22,10 +22,11 @@ import set_param
         
 # Generate the fracture network, using the P21 condition
 num_fracs = np.array(
-    [8, 30, 105] # it is set up to run one density at the time; if you want to run several at one time, that is at your own risk 
+    [8]#, 30, 105] # it is set up to run one density at the time; if you want to run several at one time, that is at your own risk 
     )
 
-mesh_size = np.array([70, 400, 2500])
+# mesh_size = np.array([70, 400, 2500])
+mesh_size = np.array([70])
 
 # For stability purposes with the high-performance computer at UiB,
 # the MC-simulation is split in two parts. 
@@ -41,7 +42,7 @@ for ii in range(num_fracs.size):
     if run_nr == 1:
         np.random.seed(4)  
         jj = 0
-        num_realisation = 7000
+        num_realisation = 7
         
     elif run_nr == 2:
         np.random.seed(5)

@@ -12,7 +12,7 @@ import numpy as np
 import porepy as pp
 import scipy.sparse as sps
 
-import reaktoro.reaktoro4py as rt
+# import reaktoro.reaktoro4py as rt
 from update_param import calulate_mineral_volume
 import pandas as pd
 
