@@ -23,38 +23,12 @@ def injection_point(mdg, for_1d_analysis=False):
             )
     elif sd.dim == 3:
         
-        domain = mdg.subdomains(dim=2)[13]
+        sd, injection_1 = _find_closest_cell(mdg, np.array([-400, 0, 3000]), target_dim=2, for_1d_analysis=for_1d_analysis)
 
-        # Injection at fracture
-        if len(mdg.subdomains(dim=2)) == 39:
-            cells = domain.cell_centers[:, 74] 
-        elif len(mdg.subdomains(dim=2)) == 40:
-            cells = domain.cell_centers[:, 62]
-        # end if-else
-        
-        injection_1 = domain.closest_cell(
-            p = np.reshape(cells, (3,1))
-            )  
-        
-        if for_1d_analysis:
-            return domain, injection_1
-        # end if
-        
-        global_ind = 0 
-        
-        for sdd in mdg.subdomains(): 
-            if domain == sdd: break           
-            else: global_ind += sdd.num_cells
-
-        # end loop
-        
-        injection_1 += global_ind # adjust index for the global vector
-        
-    # end if
-    
-    return np.array([
-        injection_1
-        ])
+    if for_1d_analysis:
+        return sd, np.array([injection_1])
+    else:
+        return np.array([injection_1])
 
 def production_point(mdg, for_1d_analysis=False):
     "Get production well coordinate"
@@ -70,35 +44,44 @@ def production_point(mdg, for_1d_analysis=False):
    
     elif sd.dim == 3:
         
-        domain = mdg.subdomains(dim=2)[34]
+        sd, production_1 = _find_closest_cell(mdg, np.array([-1050, 400, 4670]), target_dim=2, for_1d_analysis=for_1d_analysis)
         
-        if len(mdg.subdomains(dim=2)) == 39:
-            cells = domain.cell_centers[:, 446] 
-        elif len(mdg.subdomains(dim=2)) == 40:
-            cells = domain.cell_centers[:, 443]
-        # end if
-        
-        production_1 = domain.closest_cell(
-            p = np.reshape(cells, (3,1))
-            ) 
-        
-        if for_1d_analysis:
-            return domain, production_1
-        # end if
-        
-        global_ind = 0 
-        for sdd in mdg.subdomains():    
-            if domain == sdd: break
-            else: global_ind += sdd.num_cells
-        # end loop
-        
-        production_1 += global_ind # For the global vector
+    if for_1d_analysis:
+        return sd, np.array([production_1])
+    else:
+        return np.array([production_1])
 
-    # end if
-    
-    return np.array([
-        production_1
-        ])
+
+def _find_closest_cell(mdg, target_point, target_dim=2, for_1d_analysis=False):
+
+    sd_closest = None
+    closest_cell_ind = -1
+    closest_distance = np.inf
+    for i, sd in enumerate(mdg.subdomains()):
+        if sd.dim != target_dim:
+            continue
+        
+        cell, dist = sd.closest_cell(target_point.reshape((-1, 1)), return_distance=True)
+        if dist < closest_distance:
+            closest_distance = dist
+            sd_closest = sd
+            closest_cell_ind = cell
+
+    if for_1d_analysis:
+        return sd_closest, np.array([closest_cell_ind])
+
+    offset = 0
+
+
+    for i, sd in enumerate(mdg.subdomains()):
+        if sd == sd_closest:
+            print(f"Closest cell: {sd.cell_centers[:, closest_cell_ind]}")
+            break
+        else:
+            offset += sd.num_cells
+
+
+    return sd_closest, closest_cell_ind + offset
 
 def source_rate(mdg: pp.MixedDimensionalGrid):
     """Set the external well source rate for the different equations"""
