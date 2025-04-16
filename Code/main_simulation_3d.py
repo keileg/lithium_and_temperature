@@ -36,13 +36,14 @@ domain = {
     "zmax": 8.0 * scale,
 }
 
-xx = 400
+xx = 450
 
 mesh_args = {"mesh_size_frac": xx / 4, "mesh_size_min": xx, "mesh_size_bound": xx}
 
 mdg = fracture_network_soultz.fracture_network_soultz_test(
     domain, mesh_args, add_extra=True
-)
+)   
+print(mdg)
 
 # Keywords
 mass_kw = "mass"
@@ -332,7 +333,6 @@ def save_array(array, kw, time):
 
 # %% Preper for time loop
 
-store_time = np.array([1.0, 1010e4]) * pp.YEAR  # the last one is for safty
 
 # The data in the highest dimension
 sd = mdg.subdomains(dim=mdg.dim_max())[0]
@@ -344,6 +344,7 @@ time.append(current_time)
 
 time_step = data[pp.PARAMETERS]["transport"]["time_step"]
 final_time = data[pp.PARAMETERS]["transport"]["final_time"]
+store_time = np.arange(5, final_time, 5)
 j = 0
 step = 0
 
@@ -416,10 +417,10 @@ while current_time < final_time:
     time.append(current_time)
 
     # Store
-    if np.isclose(current_time, store_time[j]):
+    if step in store_time:
         # Save in space
+        print("Writing to file")
         export.write_vtu(data=fields, time_step=int(current_time / pp.YEAR))
-        j += 1
     # end if
 
     # Get tracer in production point
@@ -435,6 +436,7 @@ while current_time < final_time:
 print(f"Current time {current_time / pp.YEAR}")
 
 export.write_vtu(data=fields, time_step=int(current_time / pp.YEAR))
+export.write_pvd()
 
 # Save in time
 save_array(array=np.asarray(tracer_time), kw=tracer, time=int(current_time / pp.YEAR))
